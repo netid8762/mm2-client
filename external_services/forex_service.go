@@ -22,7 +22,7 @@ type ForexAnswer struct {
 	Rates     map[string]float64 `json:"rates"`
 }
 
-var gForexEndpoint = "http://prices.cipig.net:3337/api/v1/usd_rates"
+var gForexEndpoint = "https://api.frankfurter.dev/v1/latest?base=USD"
 
 var ForexPriceRegistry sync.Map
 
