@@ -69,32 +69,51 @@ func processLcw() *[]LcwAnswer {
 		}
 		json_body := new(bytes.Buffer)
 		json.NewEncoder(json_body).Encode(req_data)
-		// fmt.Printf("Request body: %s\n", json_body)
-		req, _ := http.NewRequest("POST", url, json_body)
-		addHeaders(req)
-		client := &http.Client{Timeout: time.Second * 20}
-		resp, err := client.Do(req)
 
-		if err != nil {
-			fmt.Printf("Err != nil: %v\n", err)
-		}
-		if resp.StatusCode == http.StatusOK {
-			defer resp.Body.Close()
-			var chunk_answer = &[]LcwAnswer{}
-			decodeErr := json.NewDecoder(resp.Body).Decode(chunk_answer)
-			if decodeErr != nil {
-				fmt.Printf("decodeErr: %v\n", decodeErr)
-			} else {
-				// merge chunk answer into overall answer
-				if len(*chunk_answer) > 0 {
-					*answer = append(*answer, *chunk_answer...)
-				}
-			}
-		} else {
-			bodyBytes, _ := ioutil.ReadAll(resp.Body)
-			glg.Errorf("Http status not OK: %s", bodyBytes)
-		}
-		time.Sleep(10 * time.Second)
+                req, err := http.NewRequest("POST", url, json_body)
+                if err != nil {
+                    glg.Errorf("Could not create Lcw request: %v", err)
+                    time.Sleep(10 * time.Second)
+                    continue
+                }
+                addHeaders(req)
+
+                client := &http.Client{Timeout: 20 * time.Second}
+                resp, err := client.Do(req)
+                if err != nil {
+                    // A response can accompany some errors (for example, redirect errors).
+                    if resp != nil && resp.Body != nil {
+                        _ = resp.Body.Close()
+                    }
+                    glg.Errorf("Lcw request failed: %v", err)
+                    time.Sleep(10 * time.Second)
+                    continue
+                }
+
+                func() {
+                    defer resp.Body.Close()
+
+                    if resp.StatusCode == http.StatusOK {
+                        chunkAnswer := &[]LcwAnswer{}
+                        if decodeErr := json.NewDecoder(resp.Body).Decode(chunkAnswer); decodeErr != nil {
+                            glg.Errorf("Could not decode Lcw response: %v", decodeErr)
+                            return
+                        }
+                        if len(*chunkAnswer) > 0 {
+                            *answer = append(*answer, *chunkAnswer...)
+                        }
+                        return
+                    }
+
+                    bodyBytes, readErr := ioutil.ReadAll(resp.Body)
+                    if readErr != nil {
+                        glg.Errorf("Could not read Lcw error response: %v", readErr)
+                        return
+                    }
+                    glg.Errorf("Lcw returned HTTP status %s: %s", resp.Status, bodyBytes)
+                }()
+
+                time.Sleep(10 * time.Second)
 	}
 	if len(*answer) > 0 {
 		return answer
