@@ -1,8 +1,7 @@
 name: Release
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
 
@@ -11,15 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin, js]
-        goarch: [amd64, wasm]
-        exclude:
-          - goarch: wasm
-            goos: darwin
-          - goarch: wasm
-            goos: windows
-          - goarch: wasm
-            goos: linux
+        goos: [linux]
+        goarch: [amd64]
 
     steps:
       - name: Check out code into the Go module directory
@@ -27,7 +19,6 @@ jobs:
 
       - name: Go Release Binaries (server)
         uses: wangyoucao577/go-release-action@v1.20
-        if: matrix.goarch != 'wasm' && matrix.goos != 'js'
         with:
           goversion: 1.16
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,26 +32,8 @@ jobs:
           ldflags: -X main.gitCommit=${{ github.sha }} -X main.gitRef=${{ github.ref }}
           asset_name: "mm2-tools-server-dev-${{ matrix.goos }}-${{ matrix.goarch }}"
 
-      - name: Go Release Binaries (mm2-wasm)
-        uses: wangyoucao577/go-release-action@v1.20
-        if: matrix.goarch == 'wasm' && matrix.goos == 'js'
-        with:
-          goversion: 1.16
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          release_tag: dev
-          overwrite: true
-          md5sum: false
-          binary_name: mm2-tools.wasm
-          project_path: cmd/mm2_cli_wasm
-          pre_command: cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" .
-          extra_files: wasm_exec.js cmd/mm2_cli_wasm/data/index.html cmd/mm2_cli_wasm/data/static
-          asset_name: "mm2-tools-dev-${{ matrix.goos }}-${{ matrix.goarch }}"
-
       - name: Go Release Binaries (client)
         uses: wangyoucao577/go-release-action@v1.20
-        if: matrix.goarch != 'wasm' && matrix.goos != 'js'
         with:
           goversion: 1.16
           github_token: ${{ secrets.GITHUB_TOKEN }}
