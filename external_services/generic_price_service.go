@@ -12,42 +12,42 @@ func RetrieveUSDValIfSupported(coin string, expirePriceValidity int) (string, st
 	expirePriceValidityF := float64(expirePriceValidity)
 
 	//! Paprika
-	if val == "0" || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = CoinpaprikaRetrieveUSDValIfSupported(coin)
-		if val == "0" {
+		if helpers.AsFloat(val) <= 0 {
 			val, date, provider = CoinpaprikaRetrieveUSDValIfSupported(helpers.RetrieveMainTicker(coin))
 		}
 		elapsed = helpers.DateToTimeElapsed(date)
 	}
 
 	//! Gecko
-	if val == "0" || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = CoingeckoRetrieveUSDValIfSupported(coin)
 		elapsed = helpers.DateToTimeElapsed(date)
 	}
 
 	//! LCW
-	if val == "0" || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = LcwRetrieveUSDValIfSupported(coin)
 		elapsed = helpers.DateToTimeElapsed(date)
 	}
 
 	//! Swapscope
-	if val == "0" || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = SwapscopeRetrieveUSDValIfSupported(coin)
 		elapsed = helpers.DateToTimeElapsed(date)
 	}
 
 	//! Forex
-	if val == "0" || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = ForexRetrieveUSDValIfSupported(coin)
-		if val != "0" {
+		if helpers.AsFloat(val) > 0 {
 			return val, date, provider
 		}
 	}
 
 	//! Verification
-	if val != "0" {
+	if helpers.AsFloat(val) > 0 {
 		return val, date, provider
 	} else {
 		return val, date, "unknown"
@@ -59,27 +59,27 @@ func RetrieveCEXRatesFromPair(base string, rel string) (string, bool, string, st
 	val, calculated, date, provider := BinanceRetrieveCEXRatesFromPair(base, rel)
 
 	//! Paprika
-	if val == "0" {
+	if helpers.AsFloat(val) <= 0 {
 		val, calculated, date, provider = CoinpaprikaRetrieveCEXRatesFromPair(base, rel)
 	}
 
 	//! Gecko
-	if val == "0" {
+	if helpers.AsFloat(val) <= 0 {
 		val, calculated, date, provider = CoingeckoRetrieveCEXRatesFromPair(base, rel)
 	}
 
 	//! LCW
-	if val == "0" {
+	if helpers.AsFloat(val) <= 0 {
 		val, calculated, date, provider = LcwRetrieveCEXRatesFromPair(base, rel)
 	}
 
 	//! Swapscope
-	if val == "0" {
+	if helpers.AsFloat(val) <= 0 {
 		val, calculated, date, provider = SwapscopeRetrieveCEXRatesFromPair(base, rel)
 	}
 
 	//! Verification
-	if val != "0" {
+	if helpers.AsFloat(val) > 0 {
 		return val, calculated, date, provider
 	} else {
 		return val, calculated, date, "unknown"
@@ -88,13 +88,16 @@ func RetrieveCEXRatesFromPair(base string, rel string) (string, bool, string, st
 
 func RetrieveVolume24h(coin string) (string, string, string) {
 	volume, date, provider := CoinpaprikaTotalVolume(coin)
-	if volume == "0" {
+
+	if helpers.AsFloat(volume) <= 0 {
 		volume, date, provider = CoingeckoGetTotalVolume(coin)
 	}
-	if volume == "0" {
+
+	if helpers.AsFloat(volume) <= 0 {
 		volume, date, provider = LcwGetTotalVolume(coin)
 	}
-	if volume != "0" {
+
+	if helpers.AsFloat(volume) > 0 {
 		return volume, date, provider
 	} else {
 		return volume, date, "unknown"
@@ -103,6 +106,7 @@ func RetrieveVolume24h(coin string) (string, string, string) {
 
 func RetrieveSparkline7D(coin string) (*[]float64, string, string) {
 	sparklineData, date, provider := CoingeckoGetSparkline7D(coin)
+
 	if sparklineData == nil {
 		return sparklineData, date, "unknown"
 	}
@@ -112,23 +116,23 @@ func RetrieveSparkline7D(coin string) (*[]float64, string, string) {
 func RetrievePercentChange24h(coin string) (string, string, string) {
 	_, date, change24h, provider := BinanceRetrieveUSDValIfSupported(coin)
 
-	if change24h == "0" {
+	if helpers.AsFloat(change24h) == 0 {
 		change24h, date, provider = CoinpaprikaGetChange24h(coin)
 	}
 
-	if change24h == "0" {
+	if helpers.AsFloat(change24h) == 0 {
 		change24h, date, provider = CoingeckoGetChange24h(coin)
 	}
 
-	if change24h == "0" {
+	if helpers.AsFloat(change24h) == 0 {
 		change24h, date, provider = LcwGetChange24h(coin)
 	}
 
-	if change24h == "0" {
+	if helpers.AsFloat(change24h) == 0 {
 		change24h, date, provider = SwapscopeGetChange24h(coin)
 	}
 
-	if change24h != "0" {
+	if helpers.AsFloat(change24h) != 0 {
 		return change24h, date, provider
 	} else {
 		return change24h, date, "unknown"
