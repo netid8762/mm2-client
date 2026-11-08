@@ -18,6 +18,8 @@ func LaunchPriceServices() {
 		glg.Info("Start LiveCoinWatch service")
 		go StartLcwService()
 	}
+	glg.Info("Start Swapscope service")
+	go StartSwapscopeService()
 	constants.GPricesServicesRunning = true
 }
 
