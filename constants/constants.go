@@ -22,7 +22,7 @@ var (
 	GDesktopCfgLoaded                   = false
 	GMarketMakerCfgLoaded               = false
 	GNotifyCfgLoaded                    = false
-	GPricesLoopTime                     = time.Duration(90) * time.Second
+	GPricesLoopTime                     = time.Duration(120) * time.Second
 	GLcwApiKey                          = os.Getenv("LCW_API_KEY")
 	GPaprikaApiKey                      = os.Getenv("PAPRIKA_API_KEY")
 	GGeckoApiKey                        = os.Getenv("GECKO_API_KEY")
