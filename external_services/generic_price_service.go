@@ -11,18 +11,18 @@ func RetrieveUSDValIfSupported(coin string, expirePriceValidity int) (string, st
 	elapsed := helpers.DateToTimeElapsed(date)
 	expirePriceValidityF := float64(expirePriceValidity)
 
+        //! Gecko
+        if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
+                val, date, provider = CoingeckoRetrieveUSDValIfSupported(coin)
+                elapsed = helpers.DateToTimeElapsed(date)
+        }
+
 	//! Paprika
 	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
 		val, date, provider = CoinpaprikaRetrieveUSDValIfSupported(coin)
 		if helpers.AsFloat(val) <= 0 {
 			val, date, provider = CoinpaprikaRetrieveUSDValIfSupported(helpers.RetrieveMainTicker(coin))
 		}
-		elapsed = helpers.DateToTimeElapsed(date)
-	}
-
-	//! Gecko
-	if helpers.AsFloat(val) <= 0 || (expirePriceValidity > 0 && elapsed > expirePriceValidityF) {
-		val, date, provider = CoingeckoRetrieveUSDValIfSupported(coin)
 		elapsed = helpers.DateToTimeElapsed(date)
 	}
 
@@ -58,14 +58,14 @@ func RetrieveCEXRatesFromPair(base string, rel string) (string, bool, string, st
 	//! Binance
 	val, calculated, date, provider := BinanceRetrieveCEXRatesFromPair(base, rel)
 
+        //! Gecko
+        if helpers.AsFloat(val) <= 0 {
+                val, calculated, date, provider = CoingeckoRetrieveCEXRatesFromPair(base, rel)
+        }
+
 	//! Paprika
 	if helpers.AsFloat(val) <= 0 {
 		val, calculated, date, provider = CoinpaprikaRetrieveCEXRatesFromPair(base, rel)
-	}
-
-	//! Gecko
-	if helpers.AsFloat(val) <= 0 {
-		val, calculated, date, provider = CoingeckoRetrieveCEXRatesFromPair(base, rel)
 	}
 
 	//! LCW
@@ -87,10 +87,10 @@ func RetrieveCEXRatesFromPair(base string, rel string) (string, bool, string, st
 }
 
 func RetrieveVolume24h(coin string) (string, string, string) {
-	volume, date, provider := CoinpaprikaTotalVolume(coin)
+	volume, date, provider := CoingeckoGetTotalVolume(coin)
 
 	if helpers.AsFloat(volume) <= 0 {
-		volume, date, provider = CoingeckoGetTotalVolume(coin)
+		volume, date, provider = CoinpaprikaTotalVolume(coin)
 	}
 
 	if helpers.AsFloat(volume) <= 0 {
@@ -116,12 +116,12 @@ func RetrieveSparkline7D(coin string) (*[]float64, string, string) {
 func RetrievePercentChange24h(coin string) (string, string, string) {
 	_, date, change24h, provider := BinanceRetrieveUSDValIfSupported(coin)
 
-	if helpers.AsFloat(change24h) == 0 {
-		change24h, date, provider = CoinpaprikaGetChange24h(coin)
-	}
+        if helpers.AsFloat(change24h) == 0 {
+                change24h, date, provider = CoingeckoGetChange24h(coin)
+        }
 
 	if helpers.AsFloat(change24h) == 0 {
-		change24h, date, provider = CoingeckoGetChange24h(coin)
+		change24h, date, provider = CoinpaprikaGetChange24h(coin)
 	}
 
 	if helpers.AsFloat(change24h) == 0 {
